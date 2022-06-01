@@ -1,21 +1,30 @@
-import altair as alt
-import streamlit as st
-from subprocess import call
-import seaborn as sns
-import matplotlib.pyplot as plt
+import os
+from turtle import home
+try:
+    # """Try to import the libraries first"""
+    import altair as alt
+    import streamlit as st
+    # from subprocess import call
+    import seaborn as sns
+    import matplotlib.pyplot as plt
 
-import pickle
+    import pickle
 
-# from bokeh.models.widgets import Button
-# from bokeh.models import CustomJS
-# from streamlit_bokeh_events import streamlit_bokeh_events
+    # from bokeh.models.widgets import Button
+    # from bokeh.models import CustomJS
+    # from streamlit_bokeh_events import streamlit_bokeh_events
 
-from weblibrary_support import make_model_library
-from remoterepo_support import make_model_remoterepo
-from localrepo_support import make_model_localrepo
-from weblink_support import make_model_weblinks
-from configure_source import update_source
-from utils import MakeQuery
+    from weblibrary_support import make_model_library
+    from remoterepo_support import make_model_remoterepo
+    from localrepo_support import make_model_localrepo
+    from weblink_support import make_model_weblinks
+    from configure_source import update_source
+    from utils import MakeQuery
+
+
+except:
+    """If faced with any error it will try to setup the environment"""
+    os.system('python set_up.py')
 
 
 
@@ -29,25 +38,44 @@ hide_streamlit_style = """
             <style>
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
+            div.stButton > button:first-child { 
+                color: #4F8BF9;
+                height: 3em;
+                width: 100%; 
+                }
             </style>
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 results = {}
-print('revisited!!')
+# print('revisited!!')
+
+print(st.session_state)
+
+if 'home_page' not in st.session_state:
+    st.session_state['home_page'] = True
+
+if 'mode' not in st.session_state:
+    with open('app_mode_status/mode.txt') as file:
+        st.session_state['mode'] = file.read()
 
 
 # @st.cache
-if __name__ == '__main__':
-    with open('app_mode_status/mode.txt') as file:
-        mode = file.read()
-
+def main():
+    # print(mode)
+    # with open('app_mode_status/mode.txt') as file:
+    #     mode = file.read()
+    st.sidebar.image("Document search engine.png")
     operation_mode = st.sidebar.selectbox(
         "Mode of operation",
-        ("None", "Search", "Configure")
+        ("", "Search", "Configure")
     )
 
-    if operation_mode != 'None':
-        mode = operation_mode
+    
+    if operation_mode != '':
+        # mode = operation_mode
+        st.session_state['mode'] = operation_mode
+    
+    mode = st.session_state['mode']
 
     if mode == 'Search':
         loc_res = {}
@@ -194,7 +222,7 @@ if __name__ == '__main__':
                 cnt_files = 0
                 # col2.write(results['weblinks'])
                 for item in results['weblinks']:
-                    if item['Score'] != None:
+                    if (item['Score'] != None) and (item['Score'] > 0):
                         link_file = item['Subject']
                         col2.success(f"{item['Subject']}")
                         cnt_files += 1
@@ -262,6 +290,7 @@ if __name__ == '__main__':
         with open('app_mode_status/mode.txt', 'w') as file:
             file.write(mode)
 
+        # print(results)
         st.sidebar.markdown('### The proportion of the result from various resources')
         fig, ax = plt.subplots()
         sns.barplot(x = list(results.keys()), y = [len(results[item]) for item in results], ax = ax)
@@ -283,3 +312,41 @@ if __name__ == '__main__':
 
         with open('app_mode_status/mode.txt', 'w') as file:
             file.write(mode)
+
+def homepage():
+    # if st.session_state['home_page']:
+    home_image = st.image("Document search engine.png")
+
+    c1, c2, c3 = st.columns([1,3,1])
+    # col2.radio(
+    #         "Mode of Operation",
+    #         ("Search", "Configure"),
+    #     )
+
+    c2.markdown('<div style="text-align: center;"> <h2> Select mode of operation </h2></div>', unsafe_allow_html=True)
+    # col2.markdown('<div style="text-align: center;">Hello World!</div>', unsafe_allow_html=True)
+
+
+    search_page = c2.button('Search')
+    config_page = c2.button('Configure')
+
+    st.session_state['home_page'] = False
+    # print(search_page)
+    
+
+    if search_page:
+        print('going for search!!')
+        st.session_state['mode'] = 'Search'
+        home_image.empty()
+        main()
+    if config_page:
+        print('going for configuration!!')
+        st.session_state['mode'] = 'Config'
+        home_image.empty()
+        main()
+
+if __name__ == '__main__':
+    if st.session_state['home_page']:
+        homepage()
+    else:
+        main()
