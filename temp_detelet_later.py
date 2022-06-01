@@ -1,3 +1,9 @@
+'''This is a testing file to make sure that the old test code and 
+the temporary development code can be kept safe untill the final development.
+It is important for anyone aking changes to the file that they add any experimental 
+code in the end of the file with proper coment and dont delete anythong from the
+until all the development cycles are completed'''
+
 main()
     mode = read('mode.txt')
     results = {'library':[], 'weblinks':[], 'local':[], 'remote':[]}
